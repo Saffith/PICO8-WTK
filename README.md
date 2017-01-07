@@ -1,6 +1,4 @@
 # PICO8-WTK
-A simple set of GUI widgets for PICO-8.
-
 A simple widget toolkit for PICO-8. A demo cart can be found [here](http://www.lexaloffle.com/bbs/?tid=28467).
 
 ####Reference
