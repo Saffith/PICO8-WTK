@@ -565,3 +565,55 @@ function radio:draw(x, y)
   circfill(x+2, y+2, 1, 0)
  end
 end
+
+-- color picker
+
+color_picker={ wants_mouse=true }
+subwidget(color_picker)
+
+function color_picker.new(sel, func)
+ local c=widget.new()
+ setmetatable(c, color_picker)
+ c.w=18
+ c.h=18
+ c.func=func
+ c.value=sel
+ return c
+end
+
+function color_picker:draw(x, y)
+ pal()
+ palt(0, false)
+ 
+ rect(x, y, x+17, y+17, 0)
+ x+=1
+ y+=1
+ 
+ for c=0, 15 do
+  local cx=x+(c%4)*4
+  local cy=y+band(c, 12)
+  rectfill(cx, cy, cx+3, cy+3, c)
+ end
+ 
+ if self.value then
+  local cx=x+(self.value%4)*4
+  local cy=y+band(self.value, 12)
+  rect(cx, cy, cx+3, cy+3, 0)
+  rect(cx-1, cy-1, cx+4, cy+4, 7)
+ end
+end
+
+function color_picker:on_mouse_press()
+ -- it would probably make more
+ -- sense to take the position
+ -- as arguments, but this will
+ -- do...
+ local mx=stat(32)-self:abs_x()-1
+ local my=stat(33)-self:abs_y()-1
+ local cx=flr(mx/4)
+ local cy=flr(my/4)
+ if cx>=0 and cx<4 and cy>=0 and cy<4 then
+  self.value=cy*4+cx
+  if (self.func) self.func(self)
+ end
+end

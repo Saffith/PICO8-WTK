@@ -179,6 +179,16 @@ radio.value
 -- widget. See the note about labels below.
 function radio.new(group, label, value)
 ```
+######Color picker
+```lua
+-- The currently selected color. May be nil.
+color_picker.value
+
+-- Create a new color picker. color is the initial selection. func will be
+-- called when a color is selected, and the color picker will be passed as
+-- an argument.
+function radio.new([color,] [func])
+```
 ####A note about labels
 `button.new()`, `radio.new()`, and `checkbox.new()` can take a string, a number, a function, or another widget as the label argument. A string will produce a text label and a number will produce an icon. If it's a function, the function will be called with no argument. If it returns a number, it's an icon; if it returns a string, it's text. If this is a text function, it will be called again by `label.new()`. The value returned by this call will determine the widget's width, and it will not be updated if the text changes.
 
