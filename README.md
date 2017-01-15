@@ -47,7 +47,8 @@ gui_root.new()
 -- Update all widgets in the tree.
 gui_root:update()
 
--- Draw all visible widgets in the tree.
+-- Draw all visible widgets in the tree. Note that if there are any icons or
+-- color pickers, drawing them will affect the current palette.
 gui_root:draw()
 
 -- Add widget w to the GUI at x, y.
