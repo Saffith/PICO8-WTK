@@ -118,6 +118,14 @@ function widget:get_under_mouse(x, y)
  end
 end
 
+function widget:abs_x()
+ return self.parent:abs_x()+self.x
+end
+
+function widget:abs_y()
+ return self.parent:abs_y()+self.y
+end
+
 -- gui root
 
 gui_root={}
@@ -197,6 +205,14 @@ function gui_root:mouse_blocked()
   end
  end
  return false
+end
+
+function gui_root:abs_x()
+ return self.x
+end
+
+function gui_root:abs_y()
+ return self.y
 end
 
 -- panel

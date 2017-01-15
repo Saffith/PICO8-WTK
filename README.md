@@ -17,6 +17,10 @@ widget.visible
 
 -- Used to find the widget with gui_root:find() or panel:find().
 widget.name
+
+-- Get the position of this widget on the screen.
+widget:abs_x()
+widget:abs_y()
 ```
 ######GUI root
 The ancestor of all other widgets. Create a gui_root at the start of the  program and add widgets to it to activate them.
