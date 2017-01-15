@@ -264,7 +264,7 @@ function label.new(text, c, func)
  end
  if type(text)=="function" then
   l.text=text
-  l.w=max(#text(self)*4-1, 0)
+  l.w=max(#(""..text(self))*4-1, 0)
  else
   l.text=""..text
   l.w=max(#l.text*4-1, 0)
