@@ -104,9 +104,9 @@ Like labels, an icon can have its data provided by a function called when the ic
 -- The icon's sprite number or the function that provides it.
 icon.num
 
--- This color will be made transparent when the icon is drawn. Transparency
--- will be reset to default afterward. If this is nil, transparency will not
--- be changed.
+-- This color will be made transparent when the icon is drawn. If this is nil,
+-- all colors will be made opaque. Regardless, transparency will be reset to
+-- default afterward.
 icon.trans
 
 -- Create a new icon. num can be a number or a function. func is a function to
