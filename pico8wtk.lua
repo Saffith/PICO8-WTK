@@ -126,6 +126,25 @@ function widget:abs_y()
  return self.parent:abs_y()+self.y
 end
 
+function widget:each(widget_type)
+ local widgets, pos={}, 0
+ if not widget_type or
+  getmetatable(self)==widget_type then
+   add(widgets, self)
+ end
+ 
+ for c in all(self.children) do
+  for w in c:each(widget_type) do
+   add(widgets, w)
+  end
+ end
+ 
+ return function()
+  pos+=1
+  return widgets[pos]
+ end
+end
+
 -- gui root
 
 gui_root={}

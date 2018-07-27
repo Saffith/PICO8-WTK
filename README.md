@@ -21,6 +21,15 @@ widget.name
 -- Get the position of this widget on the screen.
 widget:abs_x()
 widget:abs_y()
+
+-- An iterator used to loop over this widget and all its children.
+-- They're not guaranteed to be returned in any particular order.
+-- If an argument is given, only widgets of the specified type
+-- are returned. For example:
+--     for w in gui:each(checkbox) do
+--      data[checkbox.prop]=checkbox.value
+--     end
+widget:each([widget_type])
 ```
 ######GUI root
 The ancestor of all other widgets. Create a gui_root at the start of the  program and add widgets to it to activate them.
