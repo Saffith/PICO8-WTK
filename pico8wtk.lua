@@ -320,9 +320,9 @@ function icon.new(n, t, f)
 end
 
 function icon:draw(x, y)
- palt()
- palt(0, false)
  if self.trans then
+  palt()
+  palt(0, false)
   palt(self.trans, true)
  end
  if type(self.num)=="number" then
@@ -330,7 +330,7 @@ function icon:draw(x, y)
  else
   spr(self.num(self), x, y)
  end
- palt()
+ if (self.trans) palt()
 end
 
 function icon:on_mouse_press()
