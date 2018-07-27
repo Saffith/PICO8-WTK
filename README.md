@@ -199,7 +199,7 @@ You can set gui_root.visible to false to hide the interface completely. Of cours
 
 You only really need one, but you could use multiple GUI roots for different program modes with totally different interfaces (e.g. one for a map editor and another for a sprite editor).
 
-Note that the checkbox, radio button, and spinner all use a field named `value` for their current value. This makes it easy to write a callback that can handle all three. Just add to the widget a field indicating which property it controls. For instance:
+Note that the checkbox, radio button, spinner, and color picker all use a field named `value` for their current value. This makes it easy to write a callback that can handle all three. Just add to the widget a field indicating which property it controls. For instance:
 ```lua
 local sp=spinner.new(16, 128, 16, 1, set_level_data)
 sp.prop="size"
