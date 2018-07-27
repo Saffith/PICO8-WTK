@@ -1,9 +1,9 @@
 # PICO8-WTK
 A simple widget toolkit for PICO-8. A demo cart can be found [here](http://www.lexaloffle.com/bbs/?tid=28467).
 
-#### Reference
+### Reference
 
-###### Widget
+##### Widget
 
 These properties are common to all widgets.
 
@@ -27,7 +27,7 @@ Used to find the widget with gui_root:find() or panel:find().
 
 Get the absolute position of this widget on the screen.
 
-###### GUI root
+##### GUI root
 
 The ancestor of all other widgets. Create a gui_root at the start of the program and add widgets to it to activate them.
 
@@ -78,7 +78,7 @@ for w in gui:each(checkbox) do
 end
 ```
 
-###### Panel
+##### Panel
 
 A simple panel to which other widgets can be added. It can be flat or have a beveled edge.
 
@@ -113,7 +113,7 @@ Find a widget with the given name in this panel.
 
 An iterator used to loop over this widget and all its children. Works the same as `gui_root:find()`.
 
-###### Label
+##### Label
 
 A text label. Can be made clickable.
 
@@ -130,7 +130,7 @@ The label's color.
 `label.new(text, [color,] [func])`
 Create a new label. `text` can be a string, a number, or a function that returns a string or number. `func` is a function to be called when the label is clicked. The label itself will be passed as an argument.
 
-###### Icon
+##### Icon
 
 An 8x8 icon, which may be clickable.
 
@@ -147,7 +147,7 @@ This color will be made transparent when the icon is drawn. If this is set to a 
 `icon.new(num, [trans,] [func])`
 Create a new icon. `num` can be a number or a function that returns a number. `func` is a function to be called when the icon is clicked. The icon will be passed as an argument.
 
-###### Button
+##### Button
 
 A clickable button that can be labeled with either text or an icon.
 
@@ -159,7 +159,7 @@ The button's color.
 
 Create a new button. `label` is a string, a number, a function returning a string or number, or a widget. See the note about labels below. `func` will be called when the button is clicked, and the button will be passed as an argument.
 
-###### Spinner
+##### Spinner
 
 A widget for number entry.
 
@@ -171,7 +171,7 @@ The spinner's current value.
 
 Create a new spinner. `initval` defaults to `minval`. `step` defaults to 1. `func` is a function to be called when the value changes. The spinner will be passed as an argument.
 
-###### Checkbox
+##### Checkbox
 
 `checkbox.value`
 Either `true` or `false`, indicating whether the checkbox is currently clicked.
@@ -179,7 +179,7 @@ Either `true` or `false`, indicating whether the checkbox is currently clicked.
 `checkbox.new(text, [value,] [func])`
 Create a new checkbox. `text` is a string, a number, a function returning a string or number, or a widget. See the note about labels below. `func` will be called when the checkbox is toggled, and the checkbox will be passed as an argument.
 
-###### Radio button group
+##### Radio button group
 
 Before creating any radio buttons, you must create a group for them to share.
 
@@ -198,7 +198,7 @@ Create a new radio button group. `func` will be called when the selection change
 
 Select the radio button with the given value. If none has that value, no button will be selected. Radio buttons are all deselected by default; use this function after adding buttons to the group to set the initial selection.
 
-###### Radio button
+##### Radio button
 
 `radio.group`
 
@@ -216,7 +216,7 @@ The value of this radio button. This can be any type of data.
 
 Create a new radio button. `label` is a string, a number, a function returning a string or number, or a widget. See the note about labels below.
 
-###### Color picker
+##### Color picker
 
 `color_picker.value`
 
@@ -226,13 +226,13 @@ The currently selected color. May be nil.
 
 Create a new color picker. `color` is the initial selection. `func` will be called when a color is selected, and the color picker will be passed as an argument.
 
-#### A note about labels
+### A note about labels
 
 `button.new()`, `radio.new()`, and `checkbox.new()` can take a string, a number, a function, or another widget as the label argument. A string will produce a text label and a number will produce an icon. If it's a function, the function will be called with no argument. If it returns a number, it's an icon; if it returns a string, it's text. If this is a text function, it will be called again by `label.new()`. The value returned by this call will determine the widget's width, and it will not be updated if the text changes.
 
 Most of this also applies to `label.new()`, but that will be a text label even if the function returns a number.
 
-#### Miscellaneous tips
+### Miscellaneous tips
 
 You can set `gui_root.visible` to false to hide the interface completely. Of course, you can also just not update or draw it.
 
