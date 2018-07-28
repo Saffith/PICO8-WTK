@@ -3,6 +3,7 @@ A simple widget toolkit for PICO-8. A demo cart can be found [here](http://www.l
 
 ### Reference
 
+Undocumented functions and variables (prefixed with `_`) are not meant to be used. They may not work as expected, and they may be changed or removed without warning in future updates.
 ##### Widget
 
 These properties are common to all widgets.
