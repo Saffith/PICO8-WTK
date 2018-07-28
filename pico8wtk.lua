@@ -59,9 +59,14 @@ widget={
 }
 widget.__index=widget
 
-function widget.new()
+function _wtk_make_widget(mt, more_props)
  local w={ _children={} }
- setmetatable(w, widget)
+ setmetatable(w, mt)
+ if more_props then
+  for k, v in pairs(more_props) do
+   w[k]=v
+  end
+ end
  return w
 end
 
@@ -151,14 +156,15 @@ gui_root={}
 _wtk_subwidget(gui_root)
 
 function gui_root.new()
- local g=widget.new()
- setmetatable(g, gui_root)
- g.w=128
- g.h=128
- g._lastx=0
- g._lasty=0
- g._lastbt=0
- return g
+ return _wtk_make_widget(
+  gui_root,
+  {
+   w=128,
+   h=128,
+   _lastx=0,
+   _lasty=0,
+   _lastbt=0
+  })
 end
 
 function gui_root:update()
@@ -240,14 +246,15 @@ panel={ _wants_mouse=true }
 _wtk_subwidget(panel)
 
 function panel.new(w, h, c, d, s)
- local p=widget.new()
- setmetatable(p, panel)
- p.w=w or 5
- p.h=h or 5
- p.c=c or 6
- p.style=s or 1
- if (d) p._draggable=true
- return p
+ return _wtk_make_widget(
+  panel,
+  {
+   w=w or 5,
+   h=h or 5,
+   c=c or 6,
+   style=s or 1,
+   _draggable=d
+  })
 end
 
 function panel:add_child(c, x, y)
@@ -289,10 +296,12 @@ label={}
 _wtk_subwidget(label)
 
 function label.new(text, c, func)
- local l=widget.new()
- setmetatable(l, label)
- l.h=5
- l.c=c or 0
+ local l=_wtk_make_widget(
+  label,
+  {
+   h=5,
+   c=c or 0
+  })
  if func then
   l._wants_mouse=true
   l._func=func
@@ -325,12 +334,14 @@ icon={}
 _wtk_subwidget(icon)
 
 function icon.new(n, t, f)
- local i=widget.new()
- setmetatable(i, icon)
- i.num=n
- i.trans=t
- i.w=8
- i.h=8
+ local i=_wtk_make_widget(
+  icon,
+  {
+   num=n,
+   trans=t,
+   w=8,
+   h=8
+  })
  if f then
   i._wants_mouse=true
   i._func=f
@@ -362,14 +373,16 @@ button={ _wants_mouse=true }
 _wtk_subwidget(button)
 
 function button.new(lbl, func, c)
- local b=widget.new()
- setmetatable(b, button)
  local l=_wtk_make_label(lbl)
- b:add_child(l, 2, 2)
- b.w=l.w+4
- b.h=l.h+4
- b.c=c or 6
- b._func=func
+ local b=_wtk_make_widget(
+  button,
+  {
+   w=l.w+4,
+   h=l.h+4,
+   c=c or 6,
+   _func=func
+  })
+  b:add_child(l, 2, 2)
  return b
 end
 
@@ -409,15 +422,17 @@ spinbtn={ _wants_mouse=true }
 _wtk_subwidget(spinbtn)
 
 function spinner.new(minv, maxv, v, step, f)
- local s=widget.new()
- setmetatable(s, spinner)
- s.w=53
- s.h=9
- s._minv=minv
- s._maxv=maxv
- s._step=step or 1
- s.value=v or minv
- s._func=f
+ local s=_wtk_make_widget(
+  spinner,
+  {
+   w=53,
+   h=9,
+   _minv=minv,
+   _maxv=maxv,
+   _step=step or 1,
+   value=v or minv,
+   _func=f
+  })
  local b=spinbtn.new("+", s, 1)
  s:add_child(b, 39, 0)
  b=spinbtn.new("-", s, -1)
@@ -440,15 +455,16 @@ function spinner:_adjust(amt)
 end
 
 function spinbtn.new(t, p, s)
- local b=widget.new()
- setmetatable(b, spinbtn)
- b.w=7
- b.h=9
- b._text=t
- b._parent=p
- b._sign=s
- b._timer=0
- return b
+ return _wtk_make_widget(
+  spinbtn,
+  {
+   w=7,
+   h=9,
+   _text=t,
+   _parent=p,
+   _sign=s,
+   _timer=0
+  })
 end
 
 function spinbtn:_draw(x, y)
@@ -497,14 +513,16 @@ checkbox={ _wants_mouse=true }
 _wtk_subwidget(checkbox)
 
 function checkbox.new(lbl, v, f)
- local c=widget.new()
- setmetatable(c, checkbox)
  local l=_wtk_make_label(lbl)
+ local c=_wtk_make_widget(
+  checkbox,
+  {
+   w=l.w+6,
+   h=7,
+   value=v or false,
+   _func=f
+  })
  c:add_child(l, 6, 0)
- c.w=l.w+6
- c.h=7
- c.value=v or false
- c._func=f
  return c
 end
 
@@ -532,10 +550,11 @@ rbgroup={}
 rbgroup.__index=rbgroup
 
 function rbgroup.new(f)
- local g=widget.new()
+ local g={
+  _func=f,
+  _btns={}
+ }
  setmetatable(g, rbgroup)
- g._func=f
- g._btns={}
  return g
 end
 
@@ -560,15 +579,17 @@ function rbgroup:select(val)
 end
 
 function radio.new(grp, lbl, val)
- local r=widget.new()
- setmetatable(r, radio)
  local l=_wtk_make_label(lbl)
+ local r=_wtk_make_widget(
+  radio,
+  {
+   w=6+l.w,
+   h=5,
+   value=val,
+   group=grp,
+   selected=false
+  })
  r:add_child(l, 6, 0)
- r.w=6+l.w
- r.h=5
- r.value=val
- r.group=grp
- r.selected=false
  add(grp._btns, r)
  return r
 end
@@ -590,13 +611,14 @@ color_picker={ _wants_mouse=true }
 _wtk_subwidget(color_picker)
 
 function color_picker.new(sel, func)
- local c=widget.new()
- setmetatable(c, color_picker)
- c.w=18
- c.h=18
- c._func=func
- c.value=sel
- return c
+ return _wtk_make_widget(
+  color_picker,
+  {
+   w=18,
+   h=18,
+   _func=func,
+   value=sel
+  })
 end
 
 function color_picker:_draw(x, y)
