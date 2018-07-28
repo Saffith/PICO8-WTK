@@ -96,9 +96,11 @@ end
 -- update this widget and all
 -- of its children.
 function widget:_update_all()
- self:_update()
- for c in all(self._children) do
-  c:_update_all()
+ if self.visible then
+  self:_update()
+  for c in all(self._children) do
+   c:_update_all()
+  end
  end
 end
 
