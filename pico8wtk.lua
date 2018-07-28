@@ -1,3 +1,6 @@
+-- wtk
+
+
 -- utils
 
 function _wtk_draw_convex_frame(x0, y0, x1, y1, c)
@@ -16,6 +19,11 @@ function _wtk_draw_concave_frame(x0, y0, x1, y1, c)
  line(x1, y0+1, x1, y1, 7)
 end
 
+-- evaluates val as a widget
+-- label and returns a new
+-- widget to display it.
+-- if val itself is a widget,
+-- val is returned.
 function _wtk_make_label(val)
  local t=type(val)
  if t=="number" then
@@ -59,6 +67,10 @@ widget={
 }
 widget.__index=widget
 
+-- create a widget with the
+-- given metatable. more_props
+-- is a table of additional
+-- properties to add or set.
 function _wtk_make_widget(mt, more_props)
  local w={ _children={} }
  setmetatable(w, mt)
@@ -70,6 +82,8 @@ function _wtk_make_widget(mt, more_props)
  return w
 end
 
+-- draw this widget and all of
+-- its children.
 function widget:_draw_all(px, py)
  if self.visible then
   self:_draw(px, py)
@@ -79,6 +93,8 @@ function widget:_draw_all(px, py)
  end
 end
 
+-- update this widget and all
+-- of its children.
 function widget:_update_all()
  self:_update()
  for c in all(self._children) do
@@ -107,6 +123,9 @@ function widget:find(n)
  end
 end
 
+-- find the deepest widget at
+-- the mouse position that
+-- accepts mouse input.
 function widget:_get_under_mouse(x, y)
  if (not self.visible) return nil
  
@@ -174,6 +193,11 @@ function gui_root:update()
  local dy=y-self._lasty
  local bt=band(stat(34), 1)==1
  
+ -- see if the mouse has moved
+ -- to a new widget. call
+ -- _on_mouse_exit() and
+ -- _on_mouse_enter() as
+ -- appropriate.
  local wum=self:_get_under_mouse(x, y)
  if wum!=self.widget_under_mouse then
   if self.widget_under_mouse then
@@ -185,11 +209,24 @@ function gui_root:update()
   end
  end
  
+ -- if something should be
+ -- notified that the mouse
+ -- has moved, do so.
  if dx!=0 or dy!=0 then
-  local w=self.clicked_widget or self.widget_under_mouse
-  if (w) w:_on_mouse_move(dx, dy)
+  local w=self.clicked_widget or
+   self.widget_under_mouse
+  if w then
+   w:_on_mouse_move(dx, dy)
+  end
  end
  
+ -- if the mouse button was
+ -- pressed, remember what was
+ -- clicked. if the button was
+ -- released, forget. also call
+ -- _on_mouse_press() or
+ -- _on_mouse_release() as
+ -- appropriate.
  if self._lastbt then
   if not bt and self.clicked_widget then
    self.clicked_widget:_on_mouse_release()
@@ -220,6 +257,8 @@ function gui_root:draw()
 end
 
 function gui_root:mouse_blocked()
+ -- only check immediate
+ -- children.
  if self.visible then
   local x=stat(32)
   local y=stat(33)
@@ -258,6 +297,9 @@ function panel.new(w, h, c, d, s)
 end
 
 function panel:add_child(c, x, y)
+ -- extend to add the child if
+ -- necessary. extend a pixel
+ -- farther if there's a frame.
  local ex=2
  if (self.style==3) ex=1
  self.w=max(self.w, x+c.w+ex)
@@ -310,17 +352,19 @@ function label.new(text, c, func)
   l.text=text
   l.w=max(#(""..text(self))*4-1, 0)
  else
-  l.text=""..text
+  l.text=tostr(text)
   l.w=max(#l.text*4-1, 0)
  end
  return l
 end
 
 function label:_draw(x, y)
- if(type(self.text)=="string") then
-  print(self.text, x, y, self.c)
+ if(type(self.text)=="function") then
+  print(tostr(self.text(self)),
+   x, y, self.c)
  else
-  print(""..self.text(self), x, y, self.c)
+  print(tostr(self.text),
+   x, y, self.c)
  end
 end
 
@@ -388,9 +432,15 @@ end
 
 function button:_draw(x, y)
  if self._clicked and self._under_mouse then
-  _wtk_draw_concave_frame(x, y, x+self.w-1, y+self.h-1, self.c)
+  _wtk_draw_concave_frame(
+   x, y,
+   x+self.w-1, y+self.h-1,
+   self.c)
  else
-  _wtk_draw_convex_frame(x, y, x+self.w-1, y+self.h-1, self.c)
+  _wtk_draw_convex_frame(
+   x, y,
+   x+self.w-1, y+self.h-1,
+   self.c)
  end
 end
 
@@ -445,6 +495,10 @@ function spinner:_draw(x, y)
  print(self.value, x+2, y+2, 0)
 end
 
+-- adjust the value. amt is
+-- multiplied by step, so
+-- a single button click should
+-- be +1 or -1.
 function spinner:_adjust(amt)
  self.value=mid(
   self.value+amt*self._step,
@@ -477,6 +531,10 @@ function spinbtn:_draw(x, y)
 end
 
 function spinbtn:_update()
+ -- adjust the number if the
+ -- button is down. if it's
+ -- been held down for a while,
+ -- adjust it more.
  if (self._timer<200) self._timer+=1
  if self._clicked and self._under_mouse then
   if self._timer>=200 then
@@ -559,12 +617,17 @@ function rbgroup.new(f)
 end
 
 function rbgroup:select(val)
- -- not the best choice of names
+ -- unselect all buttons.
  if self.selected then
+  -- maybe not the best choice
+  -- of names. oh, well.
   self.selected.selected=false
  end
- 
  self.selected=nil
+ 
+ -- then try to find one
+ -- with the right value
+ -- and select it.
  for r in all(self._btns) do
   if r.value==val then
    self.selected=r
@@ -625,16 +688,20 @@ function color_picker:_draw(x, y)
  pal()
  palt(0, false)
  
+ -- draw the outline first.
  rect(x, y, x+17, y+17, 0)
  x+=1
  y+=1
  
+ -- then the color grid.
  for c=0, 15 do
   local cx=x+(c%4)*4
   local cy=y+band(c, 12)
   rectfill(cx, cy, cx+3, cy+3, c)
  end
  
+ -- then the selection
+ -- indicator.
  if self.value then
   local cx=x+(self.value%4)*4
   local cy=y+band(self.value, 12)
@@ -644,7 +711,8 @@ function color_picker:_draw(x, y)
 end
 
 function color_picker:_on_mouse_press()
- -- it would probably make more
+ -- find the color under the 
+ -- pointer. it would make more
  -- sense to take the position
  -- as arguments, but this will
  -- do...
