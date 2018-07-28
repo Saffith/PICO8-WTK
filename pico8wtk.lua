@@ -484,9 +484,9 @@ function spinner.new(minv, maxv, v, step, f)
    _func=f
   })
  local b=spinbtn.new("+", s, 1)
- s:add_child(b, 39, 0)
- b=spinbtn.new("-", s, -1)
  s:add_child(b, 46, 0)
+ b=spinbtn.new("-", s, -1)
+ s:add_child(b, 39, 0)
  return s
 end
 
