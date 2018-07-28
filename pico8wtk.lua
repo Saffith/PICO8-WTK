@@ -233,9 +233,13 @@ function gui_root:update()
    self.clicked_widget=nil
   end
  elseif bt then
-  self.clicked_widget=self.widget_under_mouse
+  self.clicked_widget=
+   self.widget_under_mouse
   if self.clicked_widget then
-   self.clicked_widget:_on_mouse_press()
+   self.clicked_widget:
+    _on_mouse_press(
+     x-self.clicked_widget:abs_x(),
+     y-self.clicked_widget:abs_y())
   end
  end
  
@@ -710,16 +714,11 @@ function color_picker:_draw(x, y)
  end
 end
 
-function color_picker:_on_mouse_press()
+function color_picker:_on_mouse_press(x, y)
  -- find the color under the 
- -- pointer. it would make more
- -- sense to take the position
- -- as arguments, but this will
- -- do...
- local mx=stat(32)-self:abs_x()-1
- local my=stat(33)-self:abs_y()-1
- local cx=flr(mx/4)
- local cy=flr(my/4)
+ -- the pointer.
+ local cx=flr((x-1)/4)
+ local cy=flr((y-1)/4)
  if cx>=0 and cx<4 and cy>=0 and cy<4 then
   self.value=cy*4+cx
   if (self._func) self:_func()
