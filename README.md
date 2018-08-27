@@ -53,6 +53,14 @@ Update all widgets in the tree.
 
 Returns true if the mouse is over a visible widget, whether that widget wants input or not. In other words, this indicates whether the GUI is covering whatever else is on the screen, "blocking" anything would otherwise be under the mouse. Note that this only checks the root's immediate children; if a panel has a child that extends beyond it, that won't be detected.
 
+`gui_root:has_keyboard_focus()`
+
+Returns true if a text field is currently handling keyboard input.
+
+`gui_root:set_keyboard_focus([tf])`
+
+Set the given text field to handle keyboard focus or, if no argument is given, stop all text fields from handling keyboard input.
+
 `gui_root:draw()`
 
 Draw all visible widgets in the tree. Note that if there are any icons or color pickers, drawing them may affect the current palette.
@@ -217,6 +225,20 @@ The value of this radio button. This can be any type of data.
 
 Create a new radio button. `label` is a string, a number, a function returning a string or number, or a widget. See the note about labels below.
 
+#### Text field
+
+A widget that allows text entry using the keyboard. Note that glyph characters (Shift + A-Z) can be entered, but the cursor doesn't handle them properly.
+
+See also `gui_root:has_keyboard_focus()` and `gui_root:set_keyboard_focus()`.
+
+`text_field.value`
+
+The current text.
+
+`text_field.new([text,] [func,] [maxlen])`
+
+Create a new text field. `text` is the initial text. `func` will be called when the text changes, and the text field will be passed as an argument. `maxlen` is the maximum length of the string.
+
 #### Color picker
 
 `color_picker.value`
@@ -241,6 +263,7 @@ If you want to remove unused widgets to save tokens, any of these can be safely 
 * Spinner (`spinner` and `spinbtn` together)
 * Checkbox
 * Radio button (`radio` and `rbgroup` together)
+* Text field
 * Color picker
 
 Each widget's code is all together and marked with a comment at the beginning.

@@ -228,7 +228,9 @@ function gui_root:update()
  -- released, forget. also call
  -- _on_mouse_press() or
  -- _on_mouse_release() as
- -- appropriate.
+ -- appropriate. also remember
+ -- if the clicked widget
+ -- grabs the keyboard.
  if self._lastbt then
   if not bt and self.clicked_widget then
    self.clicked_widget:_on_mouse_release()
@@ -243,6 +245,7 @@ function gui_root:update()
      x-self.clicked_widget:abs_x(),
      y-self.clicked_widget:abs_y())
   end
+  self:set_keyboard_focus(self.clicked_widget)
  end
  
  self._lastx=x
@@ -275,6 +278,27 @@ function gui_root:mouse_blocked()
   end
  end
  return false
+end
+
+function gui_root:has_keyboard_focus()
+ return self._kbd_widget!=nil
+end
+
+function gui_root:set_keyboard_focus(w)
+ if self._kbd_widget then
+  self._kbd_widget._has_kbd=false
+  self._kbd_widget=nil
+ end
+ 
+ if w and w._wants_kbd then
+  -- clear any pending input
+  -- first
+  while stat(30) do
+   stat(31)
+  end
+  self._kbd_widget=w
+  w._has_kbd=true
+ end
 end
 
 function gui_root:abs_x()
@@ -467,6 +491,115 @@ function button:_on_mouse_release()
  if self._under_mouse then
   self:_func()
  end
+end
+
+-- text field
+
+text_field={
+ _wants_mouse=true,
+ _wants_kbd=true
+}
+_wtk_subwidget(text_field)
+
+function text_field.new(text, f, maxlen)
+ return _wtk_make_widget(
+  text_field,
+  {
+   w=55,
+   h=9,
+   value=tostr(text),
+   _maxlen=maxlen or 32767,
+   _func=f or _wtk_dummy,
+   _x_offset=0,
+   _cursor_pos=0,
+   _blink_timer=0
+  })
+end
+
+function text_field:_update()
+ if not self._has_kbd then
+  return
+ end
+ 
+ -- update cursor blinking
+ self._blink_timer+=1
+ if self._blink_timer==30 then
+  self._blink_timer=0
+ end
+ 
+ -- move cursor
+ local cp=self._cursor_pos
+ 
+ if (btnp(0)) cp-=1
+ if (btnp(1)) cp+=1
+ cp=mid(cp, 0, #self.value)
+ 
+ -- handle keypresses
+ 
+ while stat(30) do
+  local c, first, second=
+   stat(31),
+   sub(self.value, 1, cp),
+   sub(self.value, cp+1)
+  
+  if c=="\b" then
+   if #first>0 then
+    self.value=
+     sub(first, 1, #first-1)..
+     second
+    cp-=1
+    self:_func()
+   end
+  elseif #self.value<self._maxlen then
+   self.value=first..c..second
+   cp+=1
+   self:_func()
+  end
+ end
+ 
+ -- move text display offset
+ -- if needed
+ local vislen=flr(self.w/4)-1
+ if self._x_offset>cp-1 then
+  self._x_offset=max(cp-1, 0)
+ elseif cp>self._x_offset+vislen then
+   self._x_offset=cp-vislen
+ end
+ 
+ self._cursor_pos=cp
+end
+
+function text_field:_draw(x, y)
+ -- box and text
+ rectfill(
+  x, y,
+  x+self.w-1, y+self.h-1,
+  7)
+ clip(
+  x+2, y+2,
+  self.w-4, self.h-4)
+ print(
+  self.value,
+  x+2-self._x_offset*4, y+2,
+  0)
+ clip()
+ 
+ -- cursor
+ if self._has_kbd and
+  self._blink_timer<15 then
+   local cx=
+    x+1+
+    (self._cursor_pos-
+     self._x_offset)*4
+   line(cx, y+1, cx, y+self.h-2)
+ end
+end
+
+function text_field:_on_mouse_press(x)
+ -- no need to limit it;
+ -- _update() will fix it.
+ self._cursor_pos=
+  flr(x/4)+self._x_offset
 end
 
 -- spinner
