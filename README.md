@@ -171,15 +171,19 @@ Create a new button. `label` is a string, a number, a function returning a strin
 
 #### Spinner
 
-A widget for number entry.
+A widget for number entry. This can also be used as a simple text list, but the values will still be numbers.
 
 `spinner.value`
 
 The spinner's current value.
 
-`spinner.new(minval, maxval, [initval,] [step,] [func])`
+`spinner.presenter`
 
-Create a new spinner. `initval` defaults to `minval`. `step` defaults to 1. `func` is a function to be called when the value changes. The spinner will be passed as an argument.
+If this is set, the spinner will use it when drawing to get a string to display instead of the numeric value. This should be either a function that takes a number as an argument and returns a string or a table with numberic indices and string values.
+
+`spinner.new(minval, maxval, [value,] [step,] [func,] [presenter])`
+
+Create a new spinner. `value` defaults to `minval`. `step` defaults to 1. `func` is a function to be called when the value changes. The spinner will be passed as an argument.
 
 #### Checkbox
 

@@ -610,7 +610,7 @@ _wtk_subwidget(spinner)
 spinbtn={ _wants_mouse=true }
 _wtk_subwidget(spinbtn)
 
-function spinner.new(minv, maxv, v, step, f)
+function spinner.new(minv, maxv, v, step, f, p)
  local s=_wtk_make_widget(
   spinner,
   {
@@ -620,18 +620,29 @@ function spinner.new(minv, maxv, v, step, f)
    _maxv=maxv,
    _step=step or 1,
    value=v or minv,
-   _func=f
+   _func=f,
+   presenter=p
   })
  local b=spinbtn.new("+", s, 1)
  s:add_child(b, 46, 0)
  b=spinbtn.new("-", s, -1)
- s:add_child(b, 39, 0)
+ s:add_child(b, 0, 0)
  return s
 end
 
 function spinner:_draw(x, y)
  rectfill(x, y, x+self.w-1, y+self.h-1, 7)
- print(self.value, x+2, y+2, 0)
+ local p=self.presenter
+ local v
+ if type(p)=="table" then
+  v=p[self.value]
+ elseif type(p)=="function" then
+  v=p(self.value)
+ end
+ x+=9
+ clip(x, y, self.w-14, self.h)
+ print(v or self.value, x, y+2, 0)
+ clip()
 end
 
 -- adjust the value. amt is
