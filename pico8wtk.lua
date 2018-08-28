@@ -664,8 +664,8 @@ function spinner:_draw(x, y)
  elseif type(p)=="function" then
   v=p(self.value)
  end
- x+=9
- clip(x, y, self.w-14, self.h)
+ x+=8
+ clip(x, y, self.w-16, self.h)
  print(v or self.value, x, y+2, 0)
  clip()
 end
