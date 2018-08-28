@@ -44,7 +44,7 @@ end
 
 function _wtk_subwidget(t)
  t.__index=t
- setmetatable(t, { __index=widget })
+ return setmetatable(t, widget)
 end
 
 function _wtk_dummy()
@@ -188,8 +188,7 @@ end
 
 -- gui root
 
-gui_root={}
-_wtk_subwidget(gui_root)
+gui_root=_wtk_subwidget{}
 
 function gui_root.new()
  return _wtk_make_widget(
@@ -326,8 +325,9 @@ end
 
 -- panel
 
-panel={ _wants_mouse=true }
-_wtk_subwidget(panel)
+panel=_wtk_subwidget{
+ _wants_mouse=true
+}
 
 function panel.new(w, h, c, d, s)
  return _wtk_make_widget(
@@ -383,8 +383,7 @@ end
 
 -- label
 
-label={}
-_wtk_subwidget(label)
+label=_wtk_subwidget{}
 
 function label.new(text, c, func)
  local l=_wtk_make_widget(
@@ -423,8 +422,7 @@ end
 
 -- icon
 
-icon={}
-_wtk_subwidget(icon)
+icon=_wtk_subwidget{}
 
 function icon.new(n, t, f)
  local i=_wtk_make_widget(
@@ -464,8 +462,9 @@ end
 
 -- button
 
-button={ _wants_mouse=true }
-_wtk_subwidget(button)
+button=_wtk_subwidget{
+ _wants_mouse=true
+}
 
 function button.new(lbl, func, c)
  local l=_wtk_make_label(lbl)
@@ -516,11 +515,10 @@ end
 
 -- text field
 
-text_field={
+text_field=_wtk_subwidget{
  _wants_mouse=true,
  _wants_kbd=true
 }
-_wtk_subwidget(text_field)
 
 function text_field.new(text, f, maxlen)
  return _wtk_make_widget(
@@ -629,11 +627,11 @@ end
 
 -- spinner
 
-spinner={}
-_wtk_subwidget(spinner)
+spinner=_wtk_subwidget{}
 
-spinbtn={ _wants_mouse=true }
-_wtk_subwidget(spinbtn)
+spinbtn=_wtk_subwidget{
+ _wants_mouse=true
+}
 
 function spinner.new(minv, maxv, v, step, f, p)
  local s=_wtk_make_widget(
@@ -744,8 +742,9 @@ end
 
 -- checkbox
 
-checkbox={ _wants_mouse=true }
-_wtk_subwidget(checkbox)
+checkbox=_wtk_subwidget{
+ _wants_mouse=true
+}
 
 function checkbox.new(lbl, v, f)
  local l=_wtk_make_label(lbl)
@@ -778,8 +777,9 @@ end
 
 -- radio button
 
-radio={ _wants_mouse=true }
-_wtk_subwidget(radio)
+radio=_wtk_subwidget{
+ _wants_mouse=true
+}
 
 rbgroup={}
 rbgroup.__index=rbgroup
@@ -847,8 +847,9 @@ end
 
 -- color picker
 
-color_picker={ _wants_mouse=true }
-_wtk_subwidget(color_picker)
+color_picker=_wtk_subwidget{
+ _wants_mouse=true
+}
 
 function color_picker.new(sel, func)
  return _wtk_make_widget(
