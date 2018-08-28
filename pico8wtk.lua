@@ -105,7 +105,10 @@ function widget:_update_all()
 end
 
 function widget:add_child(c, x, y)
- if (c._parent) c._parent:remove_child(c)
+ if c._parent then
+  c._parent:remove_child(c)
+ end
+ 
  c.x=x
  c.y=y
  c._parent=self
@@ -118,10 +121,15 @@ function widget:remove_child(c)
 end
 
 function widget:find(n)
- if (self.name==n) return self
+ if self.name==n then
+  return self
+ end
+ 
  for c in all(self._children) do
   local w=c:find(n)
-  if (w) return w
+  if w then
+   return w
+  end
  end
 end
 
@@ -129,16 +137,23 @@ end
 -- the mouse position that
 -- accepts mouse input.
 function widget:_get_under_mouse(x, y)
- if (not self.visible) return nil
+ if not self.visible then
+  return nil
+ end
  
  x-=self.x
  y-=self.y
  if x>=0 and x<self.w and y>=0 and y<self.h then
   local ret=nil
-  if (self._wants_mouse) ret=self
+  if self._wants_mouse then
+   ret=self
+  end
+  
   for c in all(self._children) do
    local mc=c:_get_under_mouse(x, y)
-   if (mc) ret=mc
+   if mc then
+    ret=mc
+   end
   end
   return ret
  end
@@ -201,7 +216,7 @@ function gui_root:update()
  -- _on_mouse_enter() as
  -- appropriate.
  local wum=self:_get_under_mouse(x, y)
- if wum!=self.widget_under_mouse then
+ if wum~=self.widget_under_mouse then
   if self.widget_under_mouse then
    self.widget_under_mouse:_on_mouse_exit()
   end
@@ -214,7 +229,7 @@ function gui_root:update()
  -- if something should be
  -- notified that the mouse
  -- has moved, do so.
- if dx!=0 or dy!=0 then
+ if dx~=0 or dy~=0 then
   local w=self.clicked_widget or
    self.widget_under_mouse
   if w then
@@ -281,7 +296,7 @@ function gui_root:mouse_blocked()
 end
 
 function gui_root:has_keyboard_focus()
- return self._kbd_widget!=nil
+ return self._kbd_widget~=nil
 end
 
 function gui_root:set_keyboard_focus(w)
@@ -331,7 +346,9 @@ function panel:add_child(c, x, y)
  -- necessary. extend a pixel
  -- farther if there's a frame.
  local ex=2
- if (self.style==3) ex=1
+ if self.style==3 then
+  ex=1
+ end
  self.w=max(self.w, x+c.w+ex)
  self.h=max(self.h, y+c.h+ex)
  widget.add_child(self, c, x, y)
@@ -348,7 +365,9 @@ function panel:_draw(x, y)
 end
 
 function panel:_on_mouse_press()
- if (self._draggable) self._drag=true
+ if self._draggable then
+  self._drag=true
+ end
 end
 
 function panel:_on_mouse_release()
@@ -389,7 +408,7 @@ function label.new(text, c, func)
 end
 
 function label:_draw(x, y)
- if(type(self.text)=="function") then
+ if type(self.text)=="function" then
   print(tostr(self.text(self)),
    x, y, self.c)
  else
@@ -434,7 +453,9 @@ function icon:_draw(x, y)
  else
   spr(self.num(self), x, y)
  end
- if (self.trans) palt()
+ if self.trans then
+  palt()
+ end
 end
 
 function icon:_on_mouse_press()
@@ -530,8 +551,12 @@ function text_field:_update()
  -- move cursor
  local cp=self._cursor_pos
  
- if (btnp(0)) cp-=1
- if (btnp(1)) cp+=1
+ if btnp(0) then
+  cp-=1
+ end
+ if btnp(1) then
+  cp+=1
+ end
  cp=mid(cp, 0, #self.value)
  
  -- handle keypresses
@@ -685,7 +710,9 @@ function spinbtn:_update()
  -- button is down. if it's
  -- been held down for a while,
  -- adjust it more.
- if (self._timer<200) self._timer+=1
+ if self._timer<200 then
+  self._timer+=1
+ end
  if self._clicked and self._under_mouse then
   if self._timer>=200 then
    self._parent:_adjust(self._sign*500)
@@ -867,6 +894,8 @@ function color_picker:_on_mouse_press(x, y)
  local cy=flr((y-1)/4)
  if cx>=0 and cx<4 and cy>=0 and cy<4 then
   self.value=cy*4+cx
-  if (self._func) self:_func()
+  if self._func then
+   self:_func()
+  end
  end
 end
