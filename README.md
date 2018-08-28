@@ -63,7 +63,7 @@ Set the given text field to handle keyboard focus or, if no argument is given, s
 
 `gui_root:draw()`
 
-Draw all visible widgets in the tree. Note that if there are any icons or color pickers, drawing them may affect the current palette.
+Draw all visible widgets in the tree. Note that the widgets drawn may affect the draw state. Drawing a color picker will reset the palette to the default. Drawing an icon will reset palette transparency if it has a transparent color set. Drawing a text field or spinner will reset the clipping region.
 
 `gui_root:add_child(w, x, y)`
 
