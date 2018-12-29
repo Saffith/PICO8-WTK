@@ -326,7 +326,10 @@ end
 -- panel
 
 panel=_wtk_subwidget{
- _wants_mouse=true
+ _wants_mouse=true,
+ raised=1,
+ sunken=2,
+ flat=3
 }
 
 function panel.new(w, h, c, d, s)

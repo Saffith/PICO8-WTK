@@ -98,14 +98,11 @@ The panel's color.
 
 `panel.style`
 
-The panel's style. Accepted values:
-* 1: Convex
-* 2: Concave
-* 3: Flat
+The panel's style. Accepted values are `panel.raised`, `panel.sunken`, and `panel.flat`.
 
 `panel.new([width, height,] [color,] [draggable,] [style])`
 
-Creates a new panel. If draggable is true, the user can click and drag the panel to move it. Styles are the same as above.
+Creates a new panel. If draggable is true, the user can click and drag the panel to move it. Styles are the same as above. `color` defaults to `6`, `draggable` defaults to `false`, and `style` defaults to `panel.raised`.
 
 `panel:add_child(w, x, y)`
 
