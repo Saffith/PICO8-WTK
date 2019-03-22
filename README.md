@@ -18,7 +18,7 @@ The widget's size and position. Position is relative to parent.
 
 `widget.visible`
 
-If false, the widget is not drawn and receives no input.
+If false, the widget and its children are not drawn and receive no input.
 
 `widget.name`
 
@@ -92,7 +92,7 @@ end
 
 A simple panel to which other widgets can be added. It can be flat or have a beveled edge.
 
-`panel.c`
+`panel.color`
 
 The panel's color.
 
@@ -130,7 +130,7 @@ The text of a label can be fixed, or it can be provided by a function. If a func
 
 The label's text or the function that returns its text.
 
-`label.c`
+`label.color`
 
 The label's color.
 
@@ -158,7 +158,7 @@ Create a new icon. `num` can be a number or a function that returns a number. `f
 
 A clickable button that can be labeled with either text or an icon.
 
-`button.c`
+`button.color`
 
 The button's color.
 

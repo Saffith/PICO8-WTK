@@ -28,7 +28,7 @@ function _wtk_draw_clickable_frame(w, x, y)
  _wtk_draw_frame(
   x, y,
   x+w.w-1, y+w.h-1,
-  w.c, style
+  w.color, style
  )
 end
 
@@ -358,7 +358,7 @@ function panel.new(w, h, c, d, s)
   {
    w=w or 5,
    h=h or 5,
-   c=c or 6,
+   color=c or 6,
    style=s or 1,
    _draggable=d
   }
@@ -382,7 +382,7 @@ function panel:_draw(x, y)
  _wtk_draw_frame(
   x, y,
   x+self.w-1, y+self.h-1,
-  self.c, self.style
+  self.color, self.style
  )
 end
 
@@ -412,7 +412,7 @@ function label.new(text, c, func)
   label,
   {
    h=5,
-   c=c or 0
+   color=c or 0
   }
  )
  if func then
@@ -434,13 +434,13 @@ function label:_draw(x, y)
   print(
    tostr(self.text(self)),
    x, y,
-   self.c
+   self.color
   )
  else
   print(
    tostr(self.text),
    x, y,
-   self.c
+   self.color
   )
  end
 end
@@ -503,7 +503,7 @@ function button.new(lbl, func, c)
   {
    w=l.w+4,
    h=l.h+4,
-   c=c or 6,
+   color=c or 6,
    _func=func
   }
  )
@@ -714,7 +714,7 @@ function spinbtn.new(t, p, s)
   {
    w=7,
    h=9,
-   c=6,
+   color=6,
    _text=t,
    _parent=p,
    _sign=s,
