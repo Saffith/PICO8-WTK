@@ -3,20 +3,33 @@
 
 -- utils
 
-function _wtk_draw_convex_frame(x0, y0, x1, y1, c)
- rectfill(x0, y0, x1, y1, c)
- line(x0, y0, x0, y1-1, 7)
- line(x0, y0, x1-1, y0, 7)
- line(x0+1, y1, x1, y1, 5)
- line(x1, y0+1, x1, y1, 5)
+function _wtk_draw_frame(x0, y0, x1, y1, color, style)
+ rectfill(x0, y0, x1, y1, color)
+ local tl, br
+ if style==1 then
+  tl, br=7, 5
+ elseif style==2 then
+  tl, br=5, 7
+ else
+  return
+ end
+ line(x0, y0, x0, y1-1, tl)
+ line(x0, y0, x1-1, y0, tl)
+ line(x0+1, y1, x1, y1, br)
+ line(x1, y0+1, x1, y1, br)
 end
 
-function _wtk_draw_concave_frame(x0, y0, x1, y1, c)
- rectfill(x0, y0, x1, y1, c)
- line(x0, y0, x0, y1-1, 5)
- line(x0, y0, x1-1, y0, 5)
- line(x0+1, y1, x1, y1, 7)
- line(x1, y0+1, x1, y1, 7)
+-- used to draw button frames.
+function _wtk_draw_clickable_frame(w, x, y)
+ local style=1
+ if w._clicked and w._under_mouse then
+  style=2
+ end
+ _wtk_draw_frame(
+  x, y,
+  x+w.w-1, y+w.h-1,
+  w.c, style
+ )
 end
 
 -- evaluates val as a widget
@@ -358,13 +371,11 @@ function panel:add_child(c, x, y)
 end
 
 function panel:_draw(x, y)
- if self.style==1 then
-  _wtk_draw_convex_frame(x, y, x+self.w-1, y+self.h-1, self.c)
- elseif self.style==2 then
-  _wtk_draw_concave_frame(x, y, x+self.w-1, y+self.h-1, self.c)
- else
-  rectfill(x, y, x+self.w-1, y+self.h-1, self.c)
- end
+ _wtk_draw_frame(
+  x, y,
+  x+self.w-1, y+self.h-1,
+  self.c, self.style
+ )
 end
 
 function panel:_on_mouse_press()
@@ -484,17 +495,7 @@ function button.new(lbl, func, c)
 end
 
 function button:_draw(x, y)
- if self._clicked and self._under_mouse then
-  _wtk_draw_concave_frame(
-   x, y,
-   x+self.w-1, y+self.h-1,
-   self.c)
- else
-  _wtk_draw_convex_frame(
-   x, y,
-   x+self.w-1, y+self.h-1,
-   self.c)
- end
+ _wtk_draw_clickable_frame(self, x, y)
 end
 
 function button:_on_mouse_enter()
@@ -690,6 +691,7 @@ function spinbtn.new(t, p, s)
   {
    w=7,
    h=9,
+   c=6,
    _text=t,
    _parent=p,
    _sign=s,
@@ -698,11 +700,7 @@ function spinbtn.new(t, p, s)
 end
 
 function spinbtn:_draw(x, y)
- if self._clicked and self._under_mouse then
-  _wtk_draw_concave_frame(x, y, x+self.w-1, y+self.h-1, 6)
- else
-  _wtk_draw_convex_frame(x, y, x+self.w-1, y+self.h-1, 6)
- end
+ _wtk_draw_clickable_frame(self, x, y)
  print(self._text, x+2, y+2, 1)
 end
 
