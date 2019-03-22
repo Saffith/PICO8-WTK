@@ -156,7 +156,9 @@ function widget:_get_under_mouse(x, y)
  
  x-=self.x
  y-=self.y
- if x>=0 and x<self.w and y>=0 and y<self.h then
+ if x>=0 and x<self.w and
+  y>=0 and y<self.h
+ then
   local ret=nil
   if self._wants_mouse then
    ret=self
@@ -183,7 +185,8 @@ end
 function widget:each(widget_type)
  local widgets, pos={}, 0
  if not widget_type or
-  getmetatable(self)==widget_type then
+  getmetatable(self)==widget_type
+ then
    add(widgets, self)
  end
  
@@ -212,7 +215,8 @@ function gui_root.new()
    _lastx=0,
    _lasty=0,
    _lastbt=0
-  })
+  }
+ )
 end
 
 function gui_root:update()
@@ -299,7 +303,10 @@ function gui_root:mouse_blocked()
   local x=stat(32)
   local y=stat(33)
   for c in all(self._children) do
-   if c.visible and x>=c.x and x<c.x+c.w and y>=c.y and y<c.y+c.h then
+   if c.visible and
+    x>=c.x and x<c.x+c.w and
+    y>=c.y and y<c.y+c.h
+   then
     return true
    end
   end
@@ -354,7 +361,8 @@ function panel.new(w, h, c, d, s)
    c=c or 6,
    style=s or 1,
    _draggable=d
-  })
+  }
+ )
 end
 
 function panel:add_child(c, x, y)
@@ -405,7 +413,8 @@ function label.new(text, c, func)
   {
    h=5,
    c=c or 0
-  })
+  }
+ )
  if func then
   l._wants_mouse=true
   l._func=func
@@ -422,11 +431,17 @@ end
 
 function label:_draw(x, y)
  if type(self.text)=="function" then
-  print(tostr(self.text(self)),
-   x, y, self.c)
+  print(
+   tostr(self.text(self)),
+   x, y,
+   self.c
+  )
  else
-  print(tostr(self.text),
-   x, y, self.c)
+  print(
+   tostr(self.text),
+   x, y,
+   self.c
+  )
  end
 end
 
@@ -446,7 +461,8 @@ function icon.new(n, t, f)
    trans=t,
    w=8,
    h=8
-  })
+  }
+ )
  if f then
   i._wants_mouse=true
   i._func=f
@@ -489,8 +505,9 @@ function button.new(lbl, func, c)
    h=l.h+4,
    c=c or 6,
    _func=func
-  })
-  b:add_child(l, 2, 2)
+  }
+ )
+ b:add_child(l, 2, 2)
  return b
 end
 
@@ -536,7 +553,8 @@ function text_field.new(text, f, maxlen)
    _x_offset=0,
    _cursor_pos=0,
    _blink_timer=0
-  })
+  }
+ )
 end
 
 function text_field:_update()
@@ -601,23 +619,27 @@ function text_field:_draw(x, y)
  rectfill(
   x, y,
   x+self.w-1, y+self.h-1,
-  7)
+  7
+ )
  clip(
   x+2, y+2,
-  self.w-4, self.h-4)
+  self.w-4, self.h-4
+ )
  print(
   self.value,
   x+2-self._x_offset*4, y+2,
-  0)
+  0
+ )
  clip()
  
  -- cursor
  if self._has_kbd and
   self._blink_timer<15 then
    local cx=
-    x+1+
-    (self._cursor_pos-
-     self._x_offset)*4
+    x+1+4*(
+     self._cursor_pos-
+     self._x_offset
+    )
    line(cx, y+1, cx, y+self.h-2)
  end
 end
@@ -649,7 +671,8 @@ function spinner.new(minv, maxv, v, step, f, p)
    value=v or minv,
    _func=f,
    presenter=p
-  })
+  }
+ )
  local b=spinbtn.new("+", s, 1)
  s:add_child(b, 46, 0)
  b=spinbtn.new("-", s, -1)
@@ -696,7 +719,8 @@ function spinbtn.new(t, p, s)
    _parent=p,
    _sign=s,
    _timer=0
-  })
+  }
+ )
 end
 
 function spinbtn:_draw(x, y)
@@ -756,7 +780,8 @@ function checkbox.new(lbl, v, f)
    h=7,
    value=v or false,
    _func=f
-  })
+  }
+ )
  c:add_child(l, 6, 0)
  return c
 end
@@ -829,7 +854,8 @@ function radio.new(grp, lbl, val)
    value=val,
    group=grp,
    selected=false
-  })
+  }
+ )
  r:add_child(l, 6, 0)
  add(grp._btns, r)
  return r
@@ -860,7 +886,8 @@ function color_picker.new(sel, func)
    h=18,
    _func=func,
    value=sel
-  })
+  }
+ )
 end
 
 function color_picker:_draw(x, y)
@@ -894,7 +921,9 @@ function color_picker:_on_mouse_press(x, y)
  -- the pointer.
  local cx=flr((x-1)/4)
  local cy=flr((y-1)/4)
- if cx>=0 and cx<4 and cy>=0 and cy<4 then
+ if cx>=0 and cx<4 and
+  cy>=0 and cy<4
+ then
   self.value=cy*4+cx
   if self._func then
    self:_func()
