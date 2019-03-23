@@ -345,19 +345,19 @@ p:add_child(sp, 2, 2)
 local grp=rbgroup.new{ on_change=set_level_data }
 local rb1=radio.new{
  group=grp,
- label="Outdoor",
+ label="outdoor",
  prop="tileset",
  value=1
 }
 local rb2=radio.new{
  group=grp,
- label="Cave",
+ label="cave",
  prop="tileset",
  value=2
 }
 local rb3=radio.new{
  group=grp,
- label="Castle",
+ label="castle",
  prop="tileset",
  value=3
 }
