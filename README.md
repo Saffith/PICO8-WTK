@@ -278,7 +278,9 @@ Create a new radio button. Properties:
 
 #### Text field
 
-A widget that allows text entry using the keyboard. Note that glyph characters (Shift + A-Z) can be entered, but the cursor currently doesn't handle them properly.
+A widget that allows text entry using the keyboard.
+
+Note that glyph characters (Shift + A-Z) can be entered, but the cursor currently doesn't handle them properly. Also, because `stat(31)` doesn't report arrow keys, `btnp(0)` and `btnp(1)` are used to move the cursor. This will cause problems if directions are mapped to text keys such as WASD.
 
 See also `gui_root:has_keyboard_focus()` and `gui_root:set_keyboard_focus()`.
 
