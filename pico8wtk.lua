@@ -32,24 +32,27 @@ function _wtk_draw_clickable_frame(w, x, y)
  )
 end
 
+-- returns val or val(arg)
+-- depending on whether val
+-- is a function.
+function _wtk_eval(val, arg)
+ if type(val)=="function" then
+  return val(arg)
+ end
+ return val
+end
+
 -- evaluates val as a widget
 -- label and returns a new
 -- widget to display it.
 -- if val itself is a widget,
 -- val is returned.
 function _wtk_make_label(val)
- local t=type(val)
+ local t=type(_wtk_eval(val))
  if t=="number" then
   return icon.new{ num=val }
  elseif t=="string" or t==nil then
   return label.new{ text=val }
- elseif t=="function" then
-  local ret=val()
-  if type(ret)=="number" then
-   return icon.new{ num=val }
-  else
-   return label.new{ text=val }
-  end
  else
   return val
  end
@@ -76,7 +79,9 @@ widget={
  _on_mouse_exit=_wtk_dummy,
  _on_mouse_press=_wtk_dummy,
  _on_mouse_release=_wtk_dummy,
- _on_mouse_move=_wtk_dummy
+ _on_mouse_move=_wtk_dummy,
+ _on_click=_wtk_dummy,
+ _on_change=_wtk_dummy
 }
 widget.__index=widget
 
@@ -92,10 +97,10 @@ function _wtk_make_widget(mt, user_props, private)
   for k, v in pairs(user_props) do
    w[k]=v
   end
- end
- for k in all(private) do
-  w["_"..k]=w[k]
-  w[k]=nil
+  for k in all(private) do
+   w["_"..k]=w[k]
+   w[k]=nil
+  end
  end
  return w
 end
@@ -105,9 +110,12 @@ end
 function widget:_draw_all(px, py)
  if self.visible then
   self:_draw(px, py)
-  for c in all(self._children) do
-   c:_draw_all(px+c.x, py+c.y)
-  end
+  foreach(
+   self._children,
+   function(c)
+    c:_draw_all(px+c.x, py+c.y)
+   end
+  )
  end
 end
 
@@ -116,9 +124,10 @@ end
 function widget:_update_all()
  if self.visible then
   self:_update()
-  for c in all(self._children) do
-   c:_update_all()
-  end
+  foreach(
+   self._children,
+   widget._update_all
+  )
  end
 end
 
@@ -159,24 +168,39 @@ function widget:_get_under_mouse(x, y)
   return nil
  end
  
- x-=self.x
- y-=self.y
- if x>=0 and x<self.w and
-  y>=0 and y<self.h
- then
-  local ret=nil
+ if self:_contains_point(x, y) then
+  local ret
   if self._wants_mouse then
    ret=self
   end
   
   for c in all(self._children) do
-   local mc=c:_get_under_mouse(x, y)
+   local mc=c:_get_under_mouse(
+    x-self.x,
+    y-self.y
+   )
    if mc then
     ret=mc
    end
   end
   return ret
  end
+end
+
+-- sets the widget's value and
+-- calls its callback.
+function widget:_set_value(val)
+ self.value=val
+ self:_on_change()
+end
+
+-- returns true if the x, y is
+-- within this widget.
+function widget:_contains_point(x, y)
+ return x>=self.x and
+  x<self.x+self.w and
+  y>=self.y and
+  y<self.y+self.h
 end
 
 function widget:abs_x()
@@ -195,11 +219,14 @@ function widget:each(widget_type)
    add(widgets, self)
  end
  
- for c in all(self._children) do
-  for w in c:each(widget_type) do
-   add(widgets, w)
+ foreach(
+  self._children,
+  function(c)
+   for w in c:each(widget_type) do
+    add(widgets, w)
+   end
   end
- end
+ )
  
  return function()
   pos+=1
@@ -261,10 +288,10 @@ function gui_root:update()
  -- if the mouse button was
  -- pressed, remember what was
  -- clicked. if the button was
- -- released, forget. also call
+ -- released, forget. call
  -- _on_mouse_press() or
  -- _on_mouse_release() as
- -- appropriate. also remember
+ -- appropriate. also, remember
  -- if the clicked widget
  -- grabs the keyboard.
  if self._lastbt then
@@ -288,17 +315,14 @@ function gui_root:update()
  self._lasty=y
  self._lastbt=bt
  
- for c in all(self._children) do
-  c:_update_all()
- end
+ foreach(
+  self._children,
+  widget._update_all
+ )
 end
 
 function gui_root:draw()
- if self.visible then
-  for c in all(self._children) do
-   c:_draw_all(c.x, c.y)
-  end
- end
+ self:_draw_all(self.x, self.y)
 end
 
 function gui_root:mouse_blocked()
@@ -309,8 +333,7 @@ function gui_root:mouse_blocked()
   local y=stat(33)
   for c in all(self._children) do
    if c.visible and
-    x>=c.x and x<c.x+c.w and
-    y>=c.y and y<c.y+c.h
+    c:_contains_point(x, y)
    then
     return true
    end
@@ -355,7 +378,6 @@ panel=_wtk_subwidget{
  sunken=2,
  flat=3,
  
- _wants_mouse=true,
  w=5,
  h=5,
  color=6,
@@ -363,11 +385,13 @@ panel=_wtk_subwidget{
 }
 
 function panel.new(props)
- return _wtk_make_widget(
+ local p=_wtk_make_widget(
   panel,
   props,
   { "draggable" }
  )
+ p._wants_mouse=p._draggable
+ return p
 end
 
 function panel:add_child(c, x, y)
@@ -392,9 +416,7 @@ function panel:_draw(x, y)
 end
 
 function panel:_on_mouse_press()
- if self._draggable then
-  self._drag=true
- end
+ self._drag=true
 end
 
 function panel:_on_mouse_release()
@@ -422,7 +444,7 @@ function label.new(props)
   props,
   { "on_click" }
  )
- if l._on_click then
+ if l._on_click~=_wtk_dummy then
   l._wants_mouse=true
  end
  if type(l.text)=="function" then
@@ -435,19 +457,13 @@ function label.new(props)
 end
 
 function label:_draw(x, y)
- if type(self.text)=="function" then
-  print(
-   tostr(self.text(self)),
-   x, y,
-   self.color
-  )
- else
-  print(
-   tostr(self.text),
-   x, y,
-   self.color
-  )
- end
+ print(
+  tostr(
+   _wtk_eval(self.text, self)
+  ),
+  x, y,
+  self.color
+ )
 end
 
 function label:_on_mouse_press()
@@ -468,7 +484,7 @@ function icon.new(props)
   props,
   { "on_click" }
  )
- if i._on_click then
+ if i._on_click~=_wtk_dummy then
   i._wants_mouse=true
  end
  return i
@@ -480,11 +496,10 @@ function icon:_draw(x, y)
   palt(0, false)
   palt(self.trans, true)
  end
- if type(self.num)=="number" then
-  spr(self.num, x, y)
- else
-  spr(self.num(self), x, y)
- end
+ spr(
+  _wtk_eval(self.num, self),
+  x, y
+ )
  if self.trans then
   palt()
  end
@@ -498,8 +513,7 @@ end
 
 button=_wtk_subwidget{
  _wants_mouse=true,
- color=6,
- _on_click=_wtk_dummy
+ color=6
 }
 
 function button.new(props)
@@ -547,7 +561,6 @@ text_field=_wtk_subwidget{
  h=9,
  value="",
  _max_len=32767,
- _on_change=_wtk_dummy,
  _x_offset=0,
  _cursor_pos=0,
  _blink_timer=0
@@ -575,6 +588,11 @@ function text_field:_update()
  -- move cursor
  local cp=self._cursor_pos
  
+ -- this is a problem if
+ -- directions are mapped to
+ -- wasd or something, but
+ -- stat(31) doesn't report
+ -- arrow keys...
  if btnp(0) then
   cp-=1
  end
@@ -593,16 +611,15 @@ function text_field:_update()
   
   if c=="\b" then
    if #first>0 then
-    self.value=
+    self:_set_value(
      sub(first, 1, #first-1)..
      second
+    )
     cp-=1
-    self:_on_change()
    end
   elseif #self.value<self._max_len then
-   self.value=first..c..second
+   self:_set_value(first..c..second)
    cp+=1
-   self:_on_change()
   end
  end
  
@@ -662,8 +679,7 @@ spinner=_wtk_subwidget{
  h=9,
  _min=0,
  _max=16384,
- _step=1,
- _on_change=_wtk_dummy
+ _step=1
 }
 
 spinbtn=_wtk_subwidget{
@@ -687,15 +703,18 @@ function spinner.new(props)
  )
  s.value=s.value or s._min
  
- local b=spinbtn.new("+", s, 1)
- s:add_child(b, 46, 0)
- b=spinbtn.new("-", s, -1)
- s:add_child(b, 0, 0)
+ s:add_child(
+  spinbtn.new("+", s, 1),
+  46, 0
+ )
+ s:add_child(
+  spinbtn.new("-", s, -1),
+  0, 0
+ )
  return s
 end
 
 function spinner:_draw(x, y)
- rectfill(x, y, x+self.w-1, y+self.h-1, 7)
  local p=self.presenter
  local v
  if type(p)=="table" then
@@ -703,9 +722,19 @@ function spinner:_draw(x, y)
  elseif type(p)=="function" then
   v=p(self.value)
  end
+ 
+ rectfill(
+  x, y,
+  x+self.w-1, y+self.h-1,
+  7
+ )
  x+=8
  clip(x, y, self.w-16, self.h)
- print(v or self.value, x, y+2, 0)
+ print(
+  v or self.value,
+  x, y+2,
+  0
+ )
  clip()
 end
 
@@ -716,10 +745,10 @@ end
 function spinner:_adjust(amt)
  -- this doesn't do anything
  -- to avoid overflow...
- self.value=mid(
+ self:_set_value(mid(
   self.value+amt*self._step,
-  self._min, self._max)
- self:_on_change()
+  self._min, self._max
+ ))
 end
 
 function spinbtn.new(t, p, s)
@@ -734,7 +763,9 @@ function spinbtn.new(t, p, s)
 end
 
 function spinbtn:_draw(x, y)
- _wtk_draw_clickable_frame(self, x, y)
+ _wtk_draw_clickable_frame(
+  self, x, y
+ )
  print(self._text, x+2, y+2, 1)
 end
 
@@ -748,11 +779,17 @@ function spinbtn:_update()
  end
  if self._clicked and self._under_mouse then
   if self._timer>=200 then
-   self._parent:_adjust(self._sign*500)
+   self._parent:_adjust(
+    self._sign*500
+   )
   elseif self._timer>=100 then
-   self._parent:_adjust(self._sign*50)
+   self._parent:_adjust(
+    self._sign*50
+   )
   elseif self._timer>=10 then
-   self._parent:_adjust(self._sign)
+   self._parent:_adjust(
+    self._sign
+   )
   end
  end
 end
@@ -780,8 +817,7 @@ end
 checkbox=_wtk_subwidget{
  _wants_mouse=true,
  h=7,
- value=false,
- _on_change=_wtk_dummy
+ value=false
 }
 
 function checkbox.new(props)
@@ -805,8 +841,7 @@ function checkbox:_draw(x, y)
 end
 
 function checkbox:_on_mouse_press()
- self.value=not self.value
- self:_on_change()
+ self:_set_value(not self.value)
 end
 
 -- radio button
@@ -887,8 +922,7 @@ end
 color_picker=_wtk_subwidget{
  _wants_mouse=true,
  w=18,
- h=18,
- _on_change=_wtk_dummy
+ h=18
 }
 
 function color_picker.new(props)
@@ -931,7 +965,6 @@ function color_picker:_on_mouse_press(x, y)
  if cx>=0 and cx<4 and
   cy>=0 and cy<4
  then
-  self.value=cy*4+cx
-  self:_on_change()
+  self:_set_value(cy*4+cx)
  end
 end
