@@ -132,6 +132,7 @@ Creates a new panel. Properties:
 * `color`: The panel's color. Default: `6`
 * `style`: The panel's border style. Default: `panel.raised`
 * `draggable`: If true, the panel can moved by clicking and dragging. Default: `false`
+* `modal`: If true, only this panel and its children will receive input while it is visible. This only applies to panels added directly to the GUI root, not to other panels. If multiple modal panels are visible, the last one added takes precedence. Default: `false`
 
 `panel:add_child(w, x, y)`
 

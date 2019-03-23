@@ -164,27 +164,27 @@ end
 -- the mouse position that
 -- accepts mouse input.
 function widget:_get_under_mouse(x, y)
- if not self.visible then
+ if not self.visible or
+  not self:_contains_point(x, y)
+ then
   return nil
  end
  
- if self:_contains_point(x, y) then
-  local ret
-  if self._wants_mouse then
-   ret=self
-  end
-  
-  for c in all(self._children) do
-   local mc=c:_get_under_mouse(
-    x-self.x,
-    y-self.y
-   )
-   if mc then
-    ret=mc
-   end
-  end
-  return ret
+ local ret
+ if self._wants_mouse then
+  ret=self
  end
+ 
+ for c in all(self._children) do
+  local mc=c:_get_under_mouse(
+   x-self.x,
+   y-self.y
+  )
+  if mc then
+   ret=mc
+  end
+ end
+ return ret
 end
 
 -- sets the widget's value and
@@ -325,6 +325,33 @@ function gui_root:draw()
  self:_draw_all(self.x, self.y)
 end
 
+-- only checks the last visible
+-- modal child if there are any;
+-- otherwise, does nothing
+-- special.
+function gui_root:_get_under_mouse(x, y)
+ local mc
+ foreach(
+  self._children,
+  function(c)
+   if c._modal and c.visible then
+    mc=c
+   end
+  end
+ )
+ if mc then
+  return mc:_get_under_mouse(
+   x-self.x,
+   y-self.y
+  )
+ else
+  return widget._get_under_mouse(
+   self,
+   x, y
+  )
+ end
+end
+
 function gui_root:mouse_blocked()
  -- only check immediate
  -- children.
@@ -388,7 +415,7 @@ function panel.new(props)
  local p=_wtk_make_widget(
   panel,
   props,
-  { "draggable" }
+  { "draggable", "modal" }
  )
  p._wants_mouse=p._draggable
  return p
