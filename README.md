@@ -3,7 +3,33 @@ A simple widget toolkit for PICO-8. A demo cart can be found [here](http://www.l
 
 ## Reference
 
-Undocumented functions and variables (prefixed with `_`) are not meant to be used. They may not work as expected, and they may be changed or removed without warning in future updates.
+Undocumented functions and variables (prefixed with `_`) are not meant to be used. They may not work as expected, and they may be changed or removed without notice in future updates.
+
+All widget constructors take a table of property settings as their only argument. Lua allows you to omit parentheses in this case. For example:
+```lua
+local s=spinner.new{
+ value=curr_size,
+ min=min_size,
+ max=max_size,
+ on_change=set_size
+}
+```
+Note that not all properties are available to change after construction.
+
+Arbitrary data in these tables will be included in the widget, as well. This can be useful in callbacks, as the widget itself is passed as an argument. For example:
+```lua
+local function clicked(w)
+ printh("button number "..w.my_data.." was clicked")
+end
+
+local b=button.new{
+ label="click me",
+ on_click=clicked,
+ -- `my_data` is not used by the button at all;
+ -- this is just for the `clicked` function
+ my_data=42
+}
+```
 
 #### Widget
 
@@ -22,7 +48,7 @@ If false, the widget and its children are not drawn and receive no input.
 
 `widget.name`
 
-Used to find the widget with gui_root:find() or panel:find().
+Used to find the widget with `gui_root:find()` or `panel:find()`.
 
 `widget:abs_x()`
 `widget:abs_y()`
@@ -31,19 +57,19 @@ Get the absolute position of this widget on the screen.
 
 #### GUI root
 
-The ancestor of all other widgets. Create a gui_root at the start of the program and add widgets to it to activate them.
+The ancestor of all other widgets. Create a GUI root at the start of the program and add widgets to it to activate them.
 
 `gui_root.widget_under_mouse`
 
-The widget at the pointer's position that will receive input if the button is clicked. `nil` if there is no widget at the pointer's position or if no widget at that position wants input.
+The widget at the pointer's position that will receive input if the button is clicked. `nil` if there is no widget at the pointer's position or if no widget at that position accepts input.
 
 `gui_root.clicked_widget`
 
-The widget that has been clicked. `nil` if the mouse button is not pressed or if it was not pressed over a widget that wanted input.
+The widget that has been clicked. `nil` unless the mouse button was pressed over a widget that accepts input.
 
-`gui_root.new()`
+`gui_root.new([props])`
 
-Create a new GUI root.
+Create a new GUI root. There are no settings for this widget, but the constructor accepts an argument like any other.
 
 `gui_root:update()`
 
@@ -51,7 +77,7 @@ Update all widgets in the tree.
 
 `gui_root:mouse_blocked()`
 
-Returns true if the mouse is over a visible widget, whether that widget wants input or not. In other words, this indicates whether the GUI is covering whatever else is on the screen, "blocking" anything would otherwise be under the mouse. Note that this only checks the root's immediate children; if a panel has a child that extends beyond it, that won't be detected.
+Returns true if the mouse is over a visible widget, whether that widget accepts input or not. In other words, this indicates whether the GUI is covering whatever else is on the screen, "blocking" what would otherwise be under the pointer. Note that this only checks the root's immediate children; if a panel has a child that extends beyond it, that won't be detected.
 
 `gui_root:has_keyboard_focus()`
 
@@ -84,7 +110,7 @@ An iterator used to loop over this widget and all its children. They're not guar
 For example:
 ```lua
 for w in gui:each(checkbox) do
- data[checkbox.prop]=w.value
+ level_data[w.prop]=w.value
 end
 ```
 
@@ -98,11 +124,14 @@ The panel's color.
 
 `panel.style`
 
-The panel's style. Accepted values are `panel.raised`, `panel.sunken`, and `panel.flat`.
+The panel's border style. Accepted values are `panel.raised`, `panel.sunken`, and `panel.flat`.
 
-`panel.new([width, height,] [color,] [draggable,] [style])`
+`panel.new([props])`
 
-Creates a new panel. If draggable is true, the user can click and drag the panel to move it. Styles are the same as above. `color` defaults to `6`, `draggable` defaults to `false`, and `style` defaults to `panel.raised`.
+Creates a new panel. Properties:
+* `color`: The panel's color. Default: `6`
+* `style`: The panel's border style. Default: `panel.raised`
+* `draggable`: If true, the panel can moved by clicking and dragging. Default: `false`
 
 `panel:add_child(w, x, y)`
 
@@ -118,7 +147,7 @@ Find a widget with the given name in this panel.
 
 `panel:each([widget_type])`
 
-An iterator used to loop over this widget and all its children. Works the same as `gui_root:find()`.
+An iterator used to loop over this widget and all its children. Works the same as `gui_root:each()`.
 
 #### Label
 
@@ -134,8 +163,11 @@ The label's text or the function that returns its text.
 
 The label's color.
 
-`label.new(text, [color,] [func])`
-Create a new label. `text` can be a string, a number, or a function that returns a string or number. `func` is a function to be called when the label is clicked. The label itself will be passed as an argument.
+`label.new([props])`
+Create a new text label. Properties:
+* `text`: The label's text. This can be a string, a number, or a function returning either. The label will be passed as an argument to the function. Default: `""`
+* `color`: The text color. Default: `0`
+* `on_click`: A function to be called when the label is clicked. The label will be passed as an argument to the function. Default: `nil`
 
 #### Icon
 
@@ -151,8 +183,10 @@ The icon's sprite number or the function that provides it.
 
 This color will be made transparent when the icon is drawn. If this is set to a number, that color will be made transparent, and the palette will be reset after drawing. If this is `nil` the palette will not be affected.
 
-`icon.new(num, [trans,] [func])`
-Create a new icon. `num` can be a number or a function that returns a number. `func` is a function to be called when the icon is clicked. The icon will be passed as an argument.
+`icon.new([props])`
+Create a new icon. Properties:
+* `num`: The number of the icon or a function returning that number. The icon will be passed as an argument to the function. Default: `0`
+* `on_click`: A function to be called when the icon is clicked. The icon will be passed as an argument to the function. Default: `nil`
 
 #### Button
 
@@ -160,11 +194,14 @@ A clickable button that can be labeled with either text or an icon.
 
 `button.color`
 
-The button's color.
+The button's background color.
 
-`button.new(label, func, [color])`
+`button.new([props])`
 
-Create a new button. `label` is a string, a number, a function returning a string or number, or a widget. See the note about labels below. `func` will be called when the button is clicked, and the button will be passed as an argument.
+Create a new button. Properties:
+* `label`: A string, a number, a function returning a string or number, or a widget. See the note about labels below. The button will be passed as an argument to the function. Default: `""`
+* `color`: The button's background color. Default: `6`
+* `on_click`: The function to call when the button is clicked. The button will be passed as an argument to the function. Default: `nil`
 
 #### Spinner
 
@@ -176,37 +213,47 @@ The spinner's current value.
 
 `spinner.presenter`
 
-If this is set, the spinner will use it when drawing to get a string to display instead of the numeric value. This should be either a function that takes a number as an argument and returns a string or a table with numberic indices and string values.
+If this is set, the spinner will use it when drawing to get a string to display instead of the numeric value. This should be either a function that takes a number as an argument and returns a string or a table with appropriate numeric indices and string values.
 
-`spinner.new(minval, maxval, [value,] [step,] [func,] [presenter])`
+`spinner.new([props])`
 
-Create a new spinner. `value` defaults to `minval`. `step` defaults to 1. `func` is a function to be called when the value changes. The spinner will be passed as an argument.
+Create a new spinner. Properties:
+* `min`: The minimum value. Default: `0`
+* `max`: The maximum value. Default: `16384`
+* `step`: The amount to increase or decrease the value when a button is clicked. Default: `1`
+* `value`: The initial value. Default: `min`
+* `presenter`: A table or function to convert values to strings. Default: `nil`
+* `on_change`: A function to be called when the value changes. The spinner will be passed as an argument to the function. Default: `nil`
 
 #### Checkbox
 
 `checkbox.value`
 Either `true` or `false`, indicating whether the checkbox is currently clicked.
 
-`checkbox.new(text, [value,] [func])`
-Create a new checkbox. `text` is a string, a number, a function returning a string or number, or a widget. See the note about labels below. `func` will be called when the checkbox is toggled, and the checkbox will be passed as an argument.
+`checkbox.new([props])`
+Create a new checkbox. Properties:
+* `label`: A string, a number, a function returning a string or number, or a widget. See the note about labels below. The checkbox will be passed as an argument to the function. Default: `""`
+* `value`: The initial value. Default: `false`
+* `on_change`: A function to be called when the value changes. The checkbox will be passed as an argument to the function. Default: `nil`
 
 #### Radio button group
 
 Before creating any radio buttons, you must create a group for them to share.
 
-Note that a radio button group is not a widget and cannot be retrieved with `find()`. You can instead find an individual radio button and get its group using `radio.group`.
+Note that a radio button group is not a widget. It should not be added as a child of a panel or GUI root. It cannot be retrieved with `find()`; you can instead find an individual radio button and get its group using `radio.group`.
 
 `rbgroup.selected`
 
 The currently selected radio button, or `nil` if none is selected.
 
-`rbgroup.new([func])`
+`rbgroup.new([props])`
 
-Create a new radio button group. `func` will be called when the selection changes. The selected radio button will be passed as an argument.
+Create a new radio button group. Properties:
+* `on_change`: A function to be called when the selection changes. The selected radio button will be passed as an argument. Default: `nil`
 
 `rbgroup:select(value)`
 
-Select the radio button with the given value. If none has that value, no button will be selected. Radio buttons are all deselected by default; use this function after adding buttons to the group to set the initial selection.
+Select the radio button with the given value. If none has that value, no button will be selected.
 
 #### Radio button
 
@@ -222,13 +269,16 @@ Either `true` or `false`, indicating whether this radio button is selected.
 
 The value of this radio button. This can be any type of data.
 
-`radio.new(group, label, value)`
+`radio.new([props])`
 
-Create a new radio button. `label` is a string, a number, a function returning a string or number, or a widget. See the note about labels below.
+Create a new radio button. Properties:
+* `group`: The group this radio button should be added to. Default: `nil`
+* `label`: A string, a number, a function returning a string or number, or a widget. See the note about labels below. The radio button will be passed as an argument to the function. Default: `""`
+* `value`: The value associated with this radio button. Default: `nil`
 
 #### Text field
 
-A widget that allows text entry using the keyboard. Note that glyph characters (Shift + A-Z) can be entered, but the cursor doesn't handle them properly.
+A widget that allows text entry using the keyboard. Note that glyph characters (Shift + A-Z) can be entered, but the cursor currently doesn't handle them properly.
 
 See also `gui_root:has_keyboard_focus()` and `gui_root:set_keyboard_focus()`.
 
@@ -236,9 +286,12 @@ See also `gui_root:has_keyboard_focus()` and `gui_root:set_keyboard_focus()`.
 
 The current text.
 
-`text_field.new([text,] [func,] [maxlen])`
+`text_field.new([props])`
 
-Create a new text field. `text` is the initial text. `func` will be called when the text changes, and the text field will be passed as an argument. `maxlen` is the maximum length of the string.
+Create a new text field. Properties:
+* `value`: The initial text. Default: `""`
+* `max_len`: The maximum text length allowed. Default: `32767`
+* `on_change`: A function to be called when the value changes. The text field will be passed as an argument to the function. Default: `nil`
 
 #### Color picker
 
@@ -246,15 +299,17 @@ Create a new text field. `text` is the initial text. `func` will be called when 
 
 The currently selected color. May be nil.
 
-`color_picker.new([color,] [func])`
+`color_picker.new([props])`
 
-Create a new color picker. `color` is the initial selection. `func` will be called when a color is selected, and the color picker will be passed as an argument.
+Create a new color picker. Properties:
+* `value`: The initial selection. Default: `nil`
+* `on_change`: A function to be called when the value changes. The color picker will be passed as an argument to the function. Default: `nil`
 
 ## A note about labels
 
-`button.new()`, `radio.new()`, and `checkbox.new()` can take a string, a number, a function, or another widget as the label argument. A string will produce a text label and a number will produce an icon. If it's a function, the function will be called with no argument. If it returns a number, it's an icon; if it returns a string, it's text. If this is a text function, it will be called again by `label.new()`. The value returned by this call will determine the widget's width, and it will not be updated if the text changes.
+`button.new()`, `radio.new()`, and `checkbox.new()` can take a string, a number, a function, or another widget as the `label` property. A string will produce a text label and a number will produce an icon. If it's a function, the function will be called with no argument. If it returns a number, it's an icon; if it returns a string, it's text. If this is a text function, it will be called again by `label.new()`. The value returned by this call will determine the widget's width, and it will not be updated if the text changes.
 
-Most of this also applies to `label.new()`, but that will be a text label even if the function returns a number.
+Most of this also applies to the `text` property of `label.new()`, but that will be a text label even if the function returns a number.
 
 ## Miscellaneous tips
 
@@ -269,24 +324,41 @@ If you want to remove unused widgets to save tokens, any of these can be safely 
 
 Each widget's code is all together and marked with a comment at the beginning.
 
-You can set `gui_root.visible` to false to hide the interface completely. Of course, you can also just not update or draw it.
+You can set `gui_root.visible` to false to hide and disable the interface completely. Of course, you can also just not update or draw it.
 
 You only really need one, but you could use multiple GUI roots for different program modes with totally different interfaces (e.g. one for a map editor and another for a sprite editor).
 
-Note that the checkbox, radio button, spinner, and color picker all use a field named `value` for their current value. This makes it easy to write a callback that can handle all three. Just add to the widget a field indicating which property it controls. For instance:
+Checkboxed, radio buttons, spinners, and color pickers all use a field named `value` for their current value. This makes it easy to write a single callback that can handle all of them. Just add to the widget a field indicating which property it controls. For instance:
 ```lua
-local sp=spinner.new(16, 128, 16, 1, set_level_data)
-sp.prop="size"
+local sp=spinner.new{
+ min=16,
+ max=128,
+ value=level_data.size,
+ on_change=set_level_data,
+ prop="size"
+}
 p:add_child(sp, 2, 2)
 
-local grp=rbgroup.new(set_level_data)
-local rb1=radio.new(grp, "Outdoor", 1)
-rb1.prop="tileset"
-local rb2=radio.new(grp, "Cave", 2)
-rb2.prop="tileset"
-local rb3=radio.new(grp, "Castle", 3)
-rb3.prop="tileset"
-grp:select(1)
+local grp=rbgroup.new{ on_change=set_level_data }
+local rb1=radio.new{
+ group=grp,
+ label="Outdoor",
+ prop="tileset",
+ value=1
+}
+local rb2=radio.new{
+ group=grp,
+ label="Cave",
+ prop="tileset",
+ value=2
+}
+local rb3=radio.new{
+ group=grp,
+ label="Castle",
+ prop="tileset",
+ value=3
+}
+grp:select(level_data.tileset)
 p:add_child(rb1, 2, 13)
 p:add_child(rb2, 2, 20)
 p:add_child(rb3, 2, 27)
@@ -297,4 +369,4 @@ function set_level_data(w)
  level_data[w.prop]=w.value
 end
 ```
-This could include buttons and clickable labels and icons, as well. None of those has a `value` field normally, but there's no harm in adding one.
+This could include buttons and clickable labels and icons, as well. None of those has a `value` field normally, but there's no reason you can't add one.

@@ -40,15 +40,15 @@ end
 function _wtk_make_label(val)
  local t=type(val)
  if t=="number" then
-  return icon.new(val)
- elseif t=="string" then
-  return label.new(val)
+  return icon.new{ num=val }
+ elseif t=="string" or t==nil then
+  return label.new{ text=val }
  elseif t=="function" then
   local ret=val()
   if type(ret)=="number" then
-   return icon.new(val)
+   return icon.new{ num=val }
   else
-   return label.new(val)
+   return label.new{ text=val }
   end
  else
   return val
@@ -81,16 +81,21 @@ widget={
 widget.__index=widget
 
 -- create a widget with the
--- given metatable. more_props
--- is a table of additional
--- properties to add or set.
-function _wtk_make_widget(mt, more_props)
+-- given metatable and
+-- additional properties.
+-- private is a list of keys
+-- to prefix with '_'.
+function _wtk_make_widget(mt, user_props, private)
  local w={ _children={} }
  setmetatable(w, mt)
- if more_props then
-  for k, v in pairs(more_props) do
+ if user_props then
+  for k, v in pairs(user_props) do
    w[k]=v
   end
+ end
+ for k in all(private) do
+  w["_"..k]=w[k]
+  w[k]=nil
  end
  return w
 end
@@ -204,18 +209,18 @@ end
 
 -- gui root
 
-gui_root=_wtk_subwidget{}
+gui_root=_wtk_subwidget{
+ w=128,
+ h=128,
+ _lastx=0,
+ _lasty=0,
+ _lastbt=0
+}
 
-function gui_root.new()
+function gui_root.new(props)
  return _wtk_make_widget(
   gui_root,
-  {
-   w=128,
-   h=128,
-   _lastx=0,
-   _lasty=0,
-   _lastbt=0
-  }
+  props
  )
 end
 
@@ -346,22 +351,22 @@ end
 -- panel
 
 panel=_wtk_subwidget{
- _wants_mouse=true,
  raised=1,
  sunken=2,
- flat=3
+ flat=3,
+ 
+ _wants_mouse=true,
+ w=5,
+ h=5,
+ color=6,
+ style=1
 }
 
-function panel.new(w, h, c, d, s)
+function panel.new(props)
  return _wtk_make_widget(
   panel,
-  {
-   w=w or 5,
-   h=h or 5,
-   color=c or 6,
-   style=s or 1,
-   _draggable=d
-  }
+  props,
+  { "draggable" }
  )
 end
 
@@ -405,25 +410,25 @@ end
 
 -- label
 
-label=_wtk_subwidget{}
+label=_wtk_subwidget{
+ text="",
+ h=5,
+ color=0
+}
 
-function label.new(text, c, func)
+function label.new(props)
  local l=_wtk_make_widget(
   label,
-  {
-   h=5,
-   color=c or 0
-  }
+  props,
+  { "on_click" }
  )
- if func then
+ if l._on_click then
   l._wants_mouse=true
-  l._func=func
  end
- if type(text)=="function" then
-  l.text=text
-  l.w=max(#(""..text(self))*4-1, 0)
+ if type(l.text)=="function" then
+  l.w=max(#(""..l.text(self))*4-1, 0)
  else
-  l.text=tostr(text)
+  l.text=tostr(l.text)
   l.w=max(#l.text*4-1, 0)
  end
  return l
@@ -446,26 +451,25 @@ function label:_draw(x, y)
 end
 
 function label:_on_mouse_press()
- self:_func()
+ self:_on_click()
 end
 
 -- icon
 
-icon=_wtk_subwidget{}
+icon=_wtk_subwidget{
+ num=0,
+ w=8,
+ h=8
+}
 
-function icon.new(n, t, f)
+function icon.new(props)
  local i=_wtk_make_widget(
   icon,
-  {
-   num=n,
-   trans=t,
-   w=8,
-   h=8
-  }
+  props,
+  { "on_click" }
  )
- if f then
+ if i._on_click then
   i._wants_mouse=true
-  i._func=f
  end
  return i
 end
@@ -487,26 +491,26 @@ function icon:_draw(x, y)
 end
 
 function icon:_on_mouse_press()
- self:_func()
+ self:_on_click()
 end
 
 -- button
 
 button=_wtk_subwidget{
- _wants_mouse=true
+ _wants_mouse=true,
+ color=6,
+ _on_click=_wtk_dummy
 }
 
-function button.new(lbl, func, c)
- local l=_wtk_make_label(lbl)
+function button.new(props)
+ local l=_wtk_make_label(props.label)
  local b=_wtk_make_widget(
   button,
-  {
-   w=l.w+4,
-   h=l.h+4,
-   color=c or 6,
-   _func=func
-  }
+  props,
+  { "on_click" }
  )
+ b.w=l.w+4
+ b.h=l.h+4
  b:add_child(l, 2, 2)
  return b
 end
@@ -530,7 +534,7 @@ end
 function button:_on_mouse_release()
  self._clicked=false
  if self._under_mouse then
-  self:_func()
+  self:_on_click()
  end
 end
 
@@ -538,22 +542,22 @@ end
 
 text_field=_wtk_subwidget{
  _wants_mouse=true,
- _wants_kbd=true
+ _wants_kbd=true,
+ w=55,
+ h=9,
+ value="",
+ _max_len=32767,
+ _on_change=_wtk_dummy,
+ _x_offset=0,
+ _cursor_pos=0,
+ _blink_timer=0
 }
 
-function text_field.new(text, f, maxlen)
+function text_field.new(props)
  return _wtk_make_widget(
   text_field,
-  {
-   w=55,
-   h=9,
-   value=tostr(text),
-   _maxlen=maxlen or 32767,
-   _func=f or _wtk_dummy,
-   _x_offset=0,
-   _cursor_pos=0,
-   _blink_timer=0
-  }
+  props,
+  { "max_len", "on_change" }
  )
 end
 
@@ -593,12 +597,12 @@ function text_field:_update()
      sub(first, 1, #first-1)..
      second
     cp-=1
-    self:_func()
+    self:_on_change()
    end
-  elseif #self.value<self._maxlen then
+  elseif #self.value<self._max_len then
    self.value=first..c..second
    cp+=1
-   self:_func()
+   self:_on_change()
   end
  end
  
@@ -653,26 +657,36 @@ end
 
 -- spinner
 
-spinner=_wtk_subwidget{}
-
-spinbtn=_wtk_subwidget{
- _wants_mouse=true
+spinner=_wtk_subwidget{
+ w=53,
+ h=9,
+ _min=0,
+ _max=16384,
+ _step=1,
+ _on_change=_wtk_dummy
 }
 
-function spinner.new(minv, maxv, v, step, f, p)
+spinbtn=_wtk_subwidget{
+ _wants_mouse=true,
+ w=7,
+ h=9,
+ color=6,
+ _timer=0
+}
+
+function spinner.new(props)
  local s=_wtk_make_widget(
   spinner,
+  props,
   {
-   w=53,
-   h=9,
-   _minv=minv,
-   _maxv=maxv,
-   _step=step or 1,
-   value=v or minv,
-   _func=f,
-   presenter=p
+   "min",
+   "max",
+   "step",
+   "on_change"
   }
  )
+ s.value=s.value or s._min
+ 
  local b=spinbtn.new("+", s, 1)
  s:add_child(b, 46, 0)
  b=spinbtn.new("-", s, -1)
@@ -700,25 +714,21 @@ end
 -- a single button click should
 -- be +1 or -1.
 function spinner:_adjust(amt)
+ -- this doesn't do anything
+ -- to avoid overflow...
  self.value=mid(
   self.value+amt*self._step,
-  self._minv, self._maxv)
- if self._func then
-  self:_func()
- end
+  self._min, self._max)
+ self:_on_change()
 end
 
 function spinbtn.new(t, p, s)
  return _wtk_make_widget(
   spinbtn,
   {
-   w=7,
-   h=9,
-   color=6,
    _text=t,
    _parent=p,
    _sign=s,
-   _timer=0
   }
  )
 end
@@ -768,20 +778,20 @@ end
 -- checkbox
 
 checkbox=_wtk_subwidget{
- _wants_mouse=true
+ _wants_mouse=true,
+ h=7,
+ value=false,
+ _on_change=_wtk_dummy
 }
 
-function checkbox.new(lbl, v, f)
- local l=_wtk_make_label(lbl)
+function checkbox.new(props)
+ local l=_wtk_make_label(props.label)
  local c=_wtk_make_widget(
   checkbox,
-  {
-   w=l.w+6,
-   h=7,
-   value=v or false,
-   _func=f
-  }
+  props,
+  { "on_change" }
  )
+ c.w=l.w+6
  c:add_child(l, 6, 0)
  return c
 end
@@ -796,26 +806,31 @@ end
 
 function checkbox:_on_mouse_press()
  self.value=not self.value
- if self._func then
-  self:_func()
- end
+ self:_on_change()
 end
 
 -- radio button
 
 radio=_wtk_subwidget{
- _wants_mouse=true
+ _wants_mouse=true,
+ h=5,
+ value=false,
+ selected=false
 }
 
-rbgroup={}
+rbgroup={
+ on_change=_wtk_dummy
+}
 rbgroup.__index=rbgroup
 
-function rbgroup.new(f)
+function rbgroup.new(props)
  local g={
-  _func=f,
   _btns={}
  }
  setmetatable(g, rbgroup)
+ for k, v in pairs(props) do
+  g[k]=v
+ end
  return g
 end
 
@@ -839,25 +854,20 @@ function rbgroup:select(val)
   end
  end
  
- if self._func then
-  self._func(self.selected)
- end
+ self.on_change(self.selected)
 end
 
-function radio.new(grp, lbl, val)
- local l=_wtk_make_label(lbl)
+function radio.new(props)
+ local l=_wtk_make_label(props.label)
  local r=_wtk_make_widget(
   radio,
-  {
-   w=6+l.w,
-   h=5,
-   value=val,
-   group=grp,
-   selected=false
-  }
+  props
  )
+ r.w=6+l.w
  r:add_child(l, 6, 0)
- add(grp._btns, r)
+ if r.group then
+  add(r.group._btns, r)
+ end
  return r
 end
 
@@ -875,18 +885,17 @@ end
 -- color picker
 
 color_picker=_wtk_subwidget{
- _wants_mouse=true
+ _wants_mouse=true,
+ w=18,
+ h=18,
+ _on_change=_wtk_dummy
 }
 
-function color_picker.new(sel, func)
+function color_picker.new(props)
  return _wtk_make_widget(
   color_picker,
-  {
-   w=18,
-   h=18,
-   _func=func,
-   value=sel
-  }
+  props,
+  { "on_change" }
  )
 end
 
@@ -908,12 +917,10 @@ function color_picker:_draw(x, y)
  
  -- then the selection
  -- indicator.
- if self.value then
-  local cx=x+(self.value%4)*4
-  local cy=y+band(self.value, 12)
-  rect(cx, cy, cx+3, cy+3, 0)
-  rect(cx-1, cy-1, cx+4, cy+4, 7)
- end
+ local cx=x+(self.value%4)*4
+ local cy=y+band(self.value, 12)
+ rect(cx, cy, cx+3, cy+3, 0)
+ rect(cx-1, cy-1, cx+4, cy+4, 7)
 end
 
 function color_picker:_on_mouse_press(x, y)
@@ -925,8 +932,6 @@ function color_picker:_on_mouse_press(x, y)
   cy>=0 and cy<4
  then
   self.value=cy*4+cx
-  if self._func then
-   self:_func()
-  end
+  self:_on_change()
  end
 end
