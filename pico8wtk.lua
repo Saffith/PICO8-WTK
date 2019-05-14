@@ -13,10 +13,10 @@ function _wtk_draw_frame(x0, y0, x1, y1, color, style)
  else
   return
  end
- line(x0, y0, x0, y1-1, tl)
- line(x0, y0, x1-1, y0, tl)
+ line(x0, y1-1, x0, y0, tl)
+ line(x1-1, y0)
  line(x0+1, y1, x1, y1, br)
- line(x1, y0+1, x1, y1, br)
+ line(x1, y0+1)
 end
 
 -- used to draw button frames.
