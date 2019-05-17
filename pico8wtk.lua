@@ -36,10 +36,9 @@ end
 -- depending on whether val
 -- is a function.
 function _wtk_eval(val, arg)
- if type(val)=="function" then
-  return val(arg)
- end
- return val
+ return type(val)=="function" and
+  val(arg) or
+  val
 end
 
 -- evaluates val as a widget
@@ -95,11 +94,15 @@ function _wtk_make_widget(mt, user_props, private)
  setmetatable(w, mt)
  if user_props then
   for k, v in pairs(user_props) do
-   w[k]=v
-  end
-  for k in all(private) do
-   w["_"..k]=w[k]
-   w[k]=nil
+   -- we don't need the table
+   -- again, so just use del()
+   -- to check if it contains
+   -- an item.
+   if del(private, k) then
+    w["_"..k]=v
+   else
+    w[k]=v
+   end
   end
  end
  return w
@@ -170,20 +173,19 @@ function widget:_get_under_mouse(x, y)
   return nil
  end
  
- local ret
- if self._wants_mouse then
-  ret=self
- end
+ local ret=
+  self._wants_mouse and self
  
- for c in all(self._children) do
-  local mc=c:_get_under_mouse(
-   x-self.x,
-   y-self.y
-  )
-  if mc then
-   ret=mc
+ foreach(
+  self._children,
+  function(c)
+   ret=c:_get_under_mouse(
+    x-self.x,
+    y-self.y
+   ) or ret
   end
- end
+ )
+ 
  return ret
 end
 
@@ -863,7 +865,7 @@ function checkbox:_draw(x, y)
  rectfill(x, y, x+4, y+4, 7)
  if self.value then
   line(x+1, y+1, x+3, y+3, 0)
-  line(x+1, y+3, x+3, y+1, 0)
+  line(x+1, y+3, x+3, y+1)
  end
 end
 
