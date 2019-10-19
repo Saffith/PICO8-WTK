@@ -124,7 +124,7 @@ The panel's color.
 
 `panel.style`
 
-The panel's border style. Accepted values are `panel.raised`, `panel.sunken`, and `panel.flat`.
+The panel's border style. Accepted values are `panel.raised`, `panel.sunken`, `panel.flat`, and `panel.trans`.
 
 `panel.new([props])`
 

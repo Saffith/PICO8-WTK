@@ -403,6 +403,7 @@ end
 -- panel
 
 panel=_wtk_subwidget{
+ trans=0,
  raised=1,
  sunken=2,
  flat=3,
@@ -437,11 +438,13 @@ function panel:add_child(c, x, y)
 end
 
 function panel:_draw(x, y)
- _wtk_draw_frame(
-  x, y,
-  x+self.w-1, y+self.h-1,
-  self.color, self.style
- )
+ if self.style>0 then
+  _wtk_draw_frame(
+   x, y,
+   x+self.w-1, y+self.h-1,
+   self.color, self.style
+  )
+ end
 end
 
 function panel:_on_mouse_press()
